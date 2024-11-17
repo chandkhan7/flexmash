@@ -11,12 +11,19 @@ const App = () => {
   // Add a player to the room
   const handleAddPlayer = (image) => {
     if (players.length < 6) {
-      setPlayers([...players, { image, rating: 1200, name: `Player ${players.length + 1}` }]);
-    }
+      const newPlayer = { image, rating: 1200, name: `Player ${players.length + 1}` };
 
-    // Check if the room is full
-    if (players.length + 1 === 6) {
-      setRoomFull(true);
+      // Update the players list and check if the room is full
+      setPlayers(prevPlayers => {
+        const updatedPlayers = [...prevPlayers, newPlayer];
+
+        // Check if the room is full (after the new player is added)
+        if (updatedPlayers.length === 6) {
+          setRoomFull(true); // Set the room as full
+        }
+
+        return updatedPlayers;
+      });
     }
   };
 

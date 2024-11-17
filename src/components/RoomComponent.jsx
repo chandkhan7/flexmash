@@ -1,47 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import io from 'socket.io-client';
-import './RoomComponent.css'; // Make sure the path is correct
-
-
-// Connect to the backend socket server
-const socket = io('http://localhost:4000');
+import React, { useState } from 'react';
 
 const RoomComponent = ({ players, onAddPlayer }) => {
   const [image, setImage] = useState(null);
   const [hasUploaded, setHasUploaded] = useState(false);
 
-  useEffect(() => {
-    // Listen for real-time updates to the players list
-    socket.on('playersUpdate', (updatedPlayers) => {
-      onAddPlayer(updatedPlayers); // Update the players in the parent component
-    });
-
-    // Check if the user has already uploaded an image via localStorage
-    const uploadedImage = localStorage.getItem('uploadedImage');
-    if (uploadedImage) {
-      setHasUploaded(true); // Mark the user as having uploaded an image
-    }
-
-    return () => {
-      socket.off('playersUpdate');
-    };
-  }, [onAddPlayer]);
-
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      setImage(URL.createObjectURL(file));
+      setImage(URL.createObjectURL(file)); // Update the image preview
     }
   };
 
   const handleUpload = () => {
     if (image && !hasUploaded) {
-      // Save the uploaded image to localStorage
-      localStorage.setItem('uploadedImage', image);
-
-      // Emit the image to the server to update the players list
-      socket.emit('uploadImage', image);
-
+      // Emit the image to the parent component to update the players list
+      onAddPlayer(image);
       setImage(null); // Reset the image input
       setHasUploaded(true); // Mark as uploaded
     }
@@ -53,7 +26,7 @@ const RoomComponent = ({ players, onAddPlayer }) => {
         {players.length}/6 Players in the Room
       </h3>
       <p className="text-center text-muted">
-        Upload your image to fill the room. Once six players are added, voting will begin!
+        Upload your image to join the game!
       </p>
 
       <div className="mt-4">
@@ -93,7 +66,7 @@ const RoomComponent = ({ players, onAddPlayer }) => {
 
       <div className="mt-5">
         <h5 className="text-secondary">Players in the Room:</h5>
-        <div className="d-flex flex-wrap gap-3">
+        <div className="d-flex justify-content-start gap-3">
           {players.map((player, index) => (
             <div
               key={index}
