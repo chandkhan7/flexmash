@@ -1,22 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const RoomComponent = ({ players, onAddPlayer }) => {
+const RoomComponent = ({ onAddPlayer }) => {
+  const [players, setPlayers] = useState([]);
   const [image, setImage] = useState(null);
   const [hasUploaded, setHasUploaded] = useState(false);
 
+  // Sync players from localStorage when the component mounts
+  useEffect(() => {
+    const storedPlayers = JSON.parse(localStorage.getItem('players')) || [];
+    setPlayers(storedPlayers);
+
+    // Listen for storage changes in other tabs and update players state
+    const handleStorageChange = () => {
+      const updatedPlayers = JSON.parse(localStorage.getItem('players')) || [];
+      setPlayers(updatedPlayers);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
+  // Function to add a player and update localStorage
+  const handleUpload = () => {
+    if (image && !hasUploaded) {
+      const newPlayerList = [...players, image];
+      setPlayers(newPlayerList);
+      localStorage.setItem('players', JSON.stringify(newPlayerList)); // Store players in localStorage
+
+      onAddPlayer(image); // Emit the image to parent component
+      setImage(null); // Reset image input
+      setHasUploaded(true); // Mark as uploaded
+    }
+  };
+
+  // Handle image change
   const handleImageChange = (event) => {
     const file = event.target.files[0];
     if (file) {
       setImage(URL.createObjectURL(file)); // Update the image preview
-    }
-  };
-
-  const handleUpload = () => {
-    if (image && !hasUploaded) {
-      // Emit the image to the parent component to update the players list
-      onAddPlayer(image);
-      setImage(null); // Reset the image input
-      setHasUploaded(true); // Mark as uploaded
     }
   };
 
